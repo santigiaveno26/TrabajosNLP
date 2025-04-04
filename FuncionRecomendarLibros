@@ -1,0 +1,31 @@
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
+vectorizer = TfidfVectorizer()
+corpus_procesado = [procesar_texto2(sinopsis) for sinopsis in df['Description']]
+X = vectorizer.fit_transform(corpus_procesado)
+
+def recomendar(input_usuario,vectorizer,X,df):
+"""
+Esta función recibe una frase de búsqueda del usuario y recomienda las 10 biografías más relevantes
+del dataset comparando la sinopsis de cada libro con la frase ingresada. Utiliza TF-IDF para vectorizar
+las sinopsis y la búsqueda, y calcula la similitud de coseno para ordenar las recomendaciones.
+"""
+# Vectorizar el texto del usuario
+    input_usuario_p = procesar_texto2(input_usuario)
+    vector_usuario = vectorizer.transform([input_usuario_p])
+
+    # Calcular similitud de coseno con todo el corpus
+    similitudes = cosine_similarity(vector_usuario, X).flatten()
+
+    # Obtener índices de las 10 sinopsis más similares
+    indices_top = similitudes.argsort()[::-1][:10]
+
+    # Mostrar resultados
+    print("\nTop 10 biografías recomendadas:\n")
+    for i in indices_top:
+        print(f"Título: {df.iloc[i]['Titulo']}")
+        print(f"Autor: {df.iloc[i]['Autor']}")
+        print(f"Géneros: {', '.join(df.iloc[i]['Generos'])}")
+        print(f"URL: {df.iloc[i]['URL']}")
+        print(f"Similitud: {similitudes[i]:.4f}")
+        print("-" * 80)
