@@ -1,0 +1,63 @@
+driver = webdriver.Chrome(options=chrome_options)
+url = 'https://ww3.lectulandia.com/genero/biografia/'
+driver.get(url)
+base_url = "https://ww3.lectulandia.com"
+time.sleep(3)
+libros = []
+def obtener_libros_en_pagina():
+"""
+La funcion lo que hace es entrar a la pagina, encontrar los enlaces de cada libro, entra a cada uno y saca la informacion importante. Luego con un bucle, vamos recorriendo todas las otras paginas.
+"""
+    soup = BeautifulSoup(driver.page_source, "html.parser")
+    enlaces = soup.select('a.card-click-target')
+    print(f"📚 Encontrados {len(enlaces)} libros en esta página.")
+    pagina_actual = driver.current_url
+    for a in enlaces:
+        link = a['href']
+        link_completo = base_url + link
+        driver.get(link_completo)
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.TAG_NAME, 'h1'))
+            )
+            libro_soup = BeautifulSoup(driver.page_source, "html.parser")
+            titulo = libro_soup.find('div', {'id': 'title'}).text.strip()
+            descripcion = libro_soup.find('div', {'id': 'sinopsis'}).text.strip()
+            autor = libro_soup.find('div', {'id': 'autor'}).find('a').text.strip()
+            generos = [gen.text.strip() for gen in libro_soup.find('div', {'id': 'genero'}).find_all('a')]
+
+            libros.append({
+                "Titulo": titulo,
+                "Description": descripcion,
+                "Autor": autor,
+                "Generos": generos,
+                "URL": link
+            })
+
+        except Exception as e:
+            print(f"⚠️ Error al procesar {link}: {e}")
+        finally:
+            driver.get(pagina_actual)
+            time.sleep(1)  # pausa para evitar bloqueo por uso intensivo
+
+# Scrapea todas las páginas hasta que no haya más "siguiente"
+while True:
+    obtener_libros_en_pagina()
+
+    try:
+        siguiente_pagina = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, 'a.next'))
+        )
+        pagina_actual = driver.current_url
+        siguiente_pagina.click()
+        time.sleep(2)  # Esperar que cargue la siguiente
+    except Exception:
+        print("✅ No hay más páginas.")
+        break
+
+driver.quit()
+
+# Convertimos a DataFrame para dataset final
+df = pd.DataFrame(libros)
+df.to_csv("libros_biografia.csv", index=False)
+print("📁 Dataset guardado como 'libros_biografia.csv'")
