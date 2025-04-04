@@ -1,0 +1,21 @@
+def procesar_texto(texto):
+"""
+Se le pasa un texto como parametro y la funcion lo que hace es remover acentos, elimanr stopwords, lematizar, eliminar puntuacion, convertir sinomimos(pasar lista antes), reducir palabras a su raiz.
+"""
+  texto = remove_accents(texto)
+  texto = eliminar_stopwords(texto)
+  texto = lematizar_texto(texto)
+  texto = " ".join(texto)
+  # Eliminar puntuación
+  texto = re.sub(r"[^\w\s]", "", texto)
+  palabras_procesadas = []
+  for palabra in texto.split():
+        # Convertir sinónimos
+        if palabra in sinonimos:
+            palabra = sinonimos[palabra]
+        # Reducir a su raíz
+        if stem:
+          palabra_stem = stemmer.stem(palabra)
+          if palabra_stem not in stopwords_es:
+              palabras_procesadas.append(palabra_stem)
+  return palabras_procesadas
