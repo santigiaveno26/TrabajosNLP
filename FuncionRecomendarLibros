@@ -4,15 +4,21 @@ vectorizer = TfidfVectorizer()
 corpus_procesado = [procesar_texto2(sinopsis) for sinopsis in df['Description']]
 X = vectorizer.fit_transform(corpus_procesado)
 
-def recomendar(input_usuario,vectorizer,X,df):
+def recomendar(vectorizer,X,df):
 """
 Esta función recibe una frase de búsqueda del usuario y recomienda las 10 biografías más relevantes
 del dataset comparando la sinopsis de cada libro con la frase ingresada. Utiliza TF-IDF para vectorizar
 las sinopsis y la búsqueda, y calcula la similitud de coseno para ordenar las recomendaciones.
 """
+ # Pedir input al usuario
+    frase_usuario = input("¿Qué tipo de biografía querés leer? ").strip()
+    try:
+        cantidad = int(input("¿Cuántas recomendaciones querés? "))
+    except ValueError:
+        cantidad = 10  # Valor por defecto si no escribe un número
 # Vectorizar el texto del usuario
-    input_usuario_p = procesar_texto2(input_usuario)
-    vector_usuario = vectorizer.transform([input_usuario_p])
+    frase_usuario_p = procesar_texto2(input_usuario)
+    vector_usuario = vectorizer.transform([frase_usuario_p])
 
     # Calcular similitud de coseno con todo el corpus
     similitudes = cosine_similarity(vector_usuario, X).flatten()
